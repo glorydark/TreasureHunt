@@ -12,12 +12,10 @@ import cn.nukkit.item.ItemFirework;
 import cn.nukkit.level.ParticleEffect;
 import cn.nukkit.level.Position;
 import cn.nukkit.level.Sound;
-import cn.nukkit.level.particle.DustParticle;
-import cn.nukkit.level.particle.FlameParticle;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.tag.CompoundTag;
+import cn.nukkit.network.protocol.AnimateEntityPacket;
 import cn.nukkit.plugin.PluginBase;
-import cn.nukkit.utils.BlockColor;
 import cn.nukkit.utils.Config;
 import cn.nukkit.utils.DyeColor;
 import cn.nukkit.utils.TextFormat;
@@ -25,9 +23,7 @@ import cn.nukkit.utils.TextFormat;
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static cn.nukkit.utils.Utils.readFile;
 
@@ -76,6 +72,7 @@ public class MainClass extends PluginBase implements Listener {
             this.getServer().getScheduler().scheduleRepeatingTask(this, () -> {
                 for (Entity entity : treasureEntities) {
                     for (Player player : Server.getInstance().getOnlinePlayers().values()) {
+                        entity.spawnTo(player);
                         if (player.getLevel() == entity.getLevel() && player.distance(entity.getPosition()) < 5) {
                             Position pos = new Position(entity.x, entity.y+0.5, entity.z, entity.level);
                             if (!getPlayerCollect(player.getName()).contains(entity.namedTag.getString("treasurePositionText"))) {
