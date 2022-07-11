@@ -1,7 +1,6 @@
 treasurePositions:
   - "1:4:1:world"
 maxCollectCount: 30
-## Commands:  %player% -> playerName
 rewardCommands: []
 scale: 1.5
 isParticleMarked: true

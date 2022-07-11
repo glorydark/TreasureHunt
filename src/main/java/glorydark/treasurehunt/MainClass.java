@@ -15,16 +15,13 @@ import cn.nukkit.level.Sound;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.plugin.PluginBase;
-import cn.nukkit.utils.Config;
-import cn.nukkit.utils.DyeColor;
-import cn.nukkit.utils.TextFormat;
+import cn.nukkit.utils.*;
+import com.sun.istack.internal.NotNull;
 
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-
-import static cn.nukkit.utils.Utils.readFile;
 
 public class MainClass extends PluginBase implements Listener {
 
@@ -123,32 +120,98 @@ public class MainClass extends PluginBase implements Listener {
         this.getLogger().info(TextFormat.GREEN+"TreasureHunt onDisable");
     }
 
+    //from RsNPCX and updating the skin loader
     public void loadSkin(){
-        File skinFile = new File(path+"/skins/skin.png");
-        File jsonFile = new File(path+"/skins/skin.json");
-        Skin skin = new Skin();
-        try {
-            skin.setSkinData(ImageIO.read(skinFile));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        skin.setSkinId(jsonFile.getName());
-        String geometryName = "default";
-        for(String s:new Config(jsonFile, Config.JSON).getKeys(false)){
-            if(s.startsWith("geometry")){
-                geometryName = s;
+        File skinDataFile = new File(path+"/skins/skin.png");
+        File skinJsonFile = new File(path+"/skins/skin.json");
+        String skinName = skinDataFile.getName();
+        if (skinDataFile.exists()) {
+            Skin skin = new Skin();
+            skin.setSkinId(skinName);
+            try {
+                skin.setSkinData(ImageIO.read(skinDataFile));
+                SerializedImage.fromLegacy(skin.getSkinData().data); //检查非空和图片大小
+            } catch (Exception e) {
+                this.getLogger().error("皮肤 " + skinName + " 读取错误，请检查图片格式或图片尺寸！", e);
             }
+
+            //如果是4D皮肤
+            if (skinJsonFile.exists()) {
+                Map<String, Object> skinJson = (new Config(this.getDataFolder() + "/Skins/" + skinName + "/skin.json", Config.JSON)).getAll();
+                String geometryName = null;
+
+                String formatVersion = (String) skinJson.getOrDefault("format_version", "1.10.0");
+                skin.setGeometryDataEngineVersion(formatVersion); //设置皮肤版本，主流格式有1.16.0,1.12.0(Blockbench新模型),1.10.0(Blockbench Legacy模型),1.8.0
+                switch (formatVersion){
+                    case "1.16.0":
+                    case "1.12.0":
+                        geometryName = getGeometryName(skinJsonFile);
+                        if(geometryName.equals("nullvalue")){
+                            this.getLogger().error("暂不支持1.12.0版本格式的皮肤！请等待更新！");
+                        }else{
+                            skin.generateSkinId(skinName);
+                            skin.setSkinResourcePatch("{\"geometry\":{\"default\":\"" + geometryName + "\"}}");
+                            skin.setGeometryName(geometryName);
+                            skin.setGeometryData(readFile(skinJsonFile));
+                            this.getLogger().info("皮肤 " + skinName + " 读取中");
+                        }
+                        break;
+                    default:
+                        this.getLogger().warning("["+skinJsonFile.getName()+"] 的版本格式为："+formatVersion + "，正在尝试加载！");
+                    case "1.10.0":
+                    case "1.8.0":
+                        for (Map.Entry<String, Object> entry : skinJson.entrySet()) {
+                            if (geometryName == null) {
+                                if (entry.getKey().startsWith("geometry")) {
+                                    geometryName = entry.getKey();
+                                }
+                            }else {
+                                break;
+                            }
+                        }
+                        skin.generateSkinId(skinName);
+                        skin.setSkinResourcePatch("{\"geometry\":{\"default\":\"" + geometryName + "\"}}");
+                        skin.setGeometryName(geometryName);
+                        skin.setGeometryData(readFile(skinJsonFile));
+                        break;
+                }
+            }
+
+            skin.setTrusted(true);
+
+            if (skin.isValid()) {
+                treasureSkin = skin;
+                this.getLogger().info("皮肤 " + skinName + " 读取完成");
+            }else {
+                this.getLogger().error("皮肤 " + skinName + " 验证失败，请检查皮肤文件完整性！");
+            }
+        } else {
+            this.getLogger().error("皮肤 " + skinName + " 错误的名称格式，请将皮肤文件命名为 skin.png 模型文件命名为 skin.json");
         }
-        skin.setSkinResourcePatch("{\"geometry\":{\"default\":\""+geometryName+"\"}}");
-        skin.generateSkinId(jsonFile.getName());
-        skin.setGeometryName(geometryName);
+    }
+
+    public String getGeometryName(File file) {
+        Config originGeometry = new Config(file, Config.JSON);
+        if (!originGeometry.getString("format_version").equals("1.12.0") && !originGeometry.getString("format_version").equals("1.16.0")) {
+            return "nullvalue";
+        }
+        //先读取minecraft:geometry下面的项目
+        List<Map<String, Object>> geometryList = (List<Map<String, Object>>) originGeometry.get("minecraft:geometry");
+        //不知道为何这里改成了数组，所以按照示例文件读取第一项
+        Map<String, Object> geometryMain = geometryList.get(0);
+        //获取description内的所有
+        Map<String, Object> descriptions = (Map<String, Object>) geometryMain.get("description");
+        return (String) descriptions.getOrDefault("identifier", "geometry.unknown"); //获取identifier
+    }
+
+    public String readFile(@NotNull File file) {
+        String content = "";
         try {
-            skin.setGeometryData(readFile(jsonFile));
+            content = cn.nukkit.utils.Utils.readFile(file);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
-        skin.setTrusted(true);
-        treasureSkin = skin;
+        return content;
     }
 
     public void spawnAllTreasures(){
