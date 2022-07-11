@@ -11,7 +11,7 @@ import cn.nukkit.nbt.tag.CompoundTag;
  */
 public class TreasureEntity extends EntityHuman {
     private final Position position;
-
+    private Integer degree = 0;
 
     public TreasureEntity(FullChunk chunk, CompoundTag nbt, Position position) {
         super(chunk, nbt);
@@ -26,7 +26,6 @@ public class TreasureEntity extends EntityHuman {
         this.position = new Position(0, 0, 0, Server.getInstance().getDefaultLevel()); //防止NPE
         this.close();
     }
-
 
     @Override
     protected void initEntity() {
@@ -48,5 +47,17 @@ public class TreasureEntity extends EntityHuman {
     @Override
     public Position getPosition() {
         return position;
+    }
+
+    public Integer getDegree() {
+        return degree;
+    }
+
+    public void setDegree(Integer degree) {
+        this.degree = degree;
+    }
+
+    public void addDegree(Integer degree) {
+        this.degree += degree;
     }
 }

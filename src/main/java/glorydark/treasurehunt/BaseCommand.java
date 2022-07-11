@@ -3,6 +3,9 @@ package glorydark.treasurehunt;
 import cn.nukkit.Player;
 import cn.nukkit.command.Command;
 import cn.nukkit.command.CommandSender;
+import cn.nukkit.form.element.ElementButton;
+import cn.nukkit.form.window.FormWindowCustom;
+import cn.nukkit.form.window.FormWindowSimple;
 
 import java.io.File;
 
@@ -33,6 +36,11 @@ public class BaseCommand extends Command {
                         if(file.delete()){
                             player.sendMessage(MainClass.translateString("clearall_success"));
                         }
+                        break;
+                    case "test":
+                        FormWindowSimple simple = new FormWindowSimple(strings[1], strings[2]);
+                        simple.addButton(new ElementButton(strings[3]));
+                        ((Player) commandSender).showFormWindow(simple);
                         break;
                 }
             }else{

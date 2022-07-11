@@ -14,7 +14,6 @@ import cn.nukkit.level.Position;
 import cn.nukkit.level.Sound;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.tag.CompoundTag;
-import cn.nukkit.network.protocol.AnimateEntityPacket;
 import cn.nukkit.plugin.PluginBase;
 import cn.nukkit.utils.Config;
 import cn.nukkit.utils.DyeColor;
@@ -41,6 +40,8 @@ public class MainClass extends PluginBase implements Listener {
     public static String path;
 
     public static double scale;
+    
+    public boolean isSpin;
 
     public static List<TreasureEntity> treasureEntities = new ArrayList<>();
 
@@ -64,32 +65,33 @@ public class MainClass extends PluginBase implements Listener {
         this.maxCollectCount = config.getInt("maxCollectCount",30);
         this.rewardCommands = new ArrayList<>(config.getStringList("rewardCommands"));
         this.isKnockback = config.getBoolean("isKnockback", true);
+        this.isSpin = config.getBoolean("isSpin", false);
         langConfig = new Config(path+"/lang.properties",Config.PROPERTIES);
         this.getServer().getPluginManager().registerEvents(this, this);
         this.getServer().getCommandMap().register("", new BaseCommand("treasurehunt"));
         this.getLogger().info(TextFormat.GREEN+"TreasureHunt enabled");
-        if(config.getBoolean("isParticleMarked", false)) {
-            this.getServer().getScheduler().scheduleRepeatingTask(this, () -> {
-                for (Entity entity : treasureEntities) {
-                    for (Player player : Server.getInstance().getOnlinePlayers().values()) {
-                        entity.spawnTo(player);
+        this.getServer().getScheduler().scheduleRepeatingTask(this, () -> {
+            for (TreasureEntity entity : treasureEntities) {
+                for (Player player : Server.getInstance().getOnlinePlayers().values()) {
+                    entity.spawnTo(player);
+                    if(config.getBoolean("isParticleMarked", false)) {
                         if (player.getLevel() == entity.getLevel() && player.distance(entity.getPosition()) < 5) {
-                            Position pos = new Position(entity.x, entity.y+0.5, entity.z, entity.level);
+                            Position pos = new Position(entity.x, entity.y + 0.5, entity.z, entity.level);
                             if (!getPlayerCollect(player.getName()).contains(entity.namedTag.getString("treasurePositionText"))) {
                                 ParticleEffect particleeffect = ParticleEffect.BLUE_FLAME;
-                                for(int angle = 0;angle < 720;angle++){
-                                    double x1 = pos.x + 1 * Math.cos(angle*3.14/180);
-                                    double z1 = pos.z + 1 * Math.sin(angle*3.14/180);
-                                    if(angle%30==0) {
+                                for (int angle = 0; angle < 720; angle++) {
+                                    double x1 = pos.x + 1 * Math.cos(angle * 3.14 / 180);
+                                    double z1 = pos.z + 1 * Math.sin(angle * 3.14 / 180);
+                                    if (angle % 30 == 0) {
                                         pos.getLevel().addParticleEffect(new Position(x1, pos.y, z1), particleeffect);
                                     }
                                 }
                             } else {
                                 ParticleEffect particleeffect = ParticleEffect.FALLING_DUST_GRAVEL;
-                                for(int angle = 0;angle < 720;angle++){
-                                    double x1 = pos.x + 1 * Math.cos(angle*3.14/180);
-                                    double z1 = pos.z + 1 * Math.sin(angle*3.14/180);
-                                    if(angle%30==0) {
+                                for (int angle = 0; angle < 720; angle++) {
+                                    double x1 = pos.x + 1 * Math.cos(angle * 3.14 / 180);
+                                    double z1 = pos.z + 1 * Math.sin(angle * 3.14 / 180);
+                                    if (angle % 30 == 0) {
                                         pos.getLevel().addParticleEffect(new Position(x1, pos.y, z1), particleeffect);
                                     }
                                 }
@@ -97,7 +99,16 @@ public class MainClass extends PluginBase implements Listener {
                         }
                     }
                 }
-            }, 40);
+            }
+        }, 40);
+        if(isSpin){
+            this.getServer().getScheduler().scheduleRepeatingTask(this, ()->{
+                if(Server.getInstance().getOnlinePlayers().size() == 0){ return; }
+                for (TreasureEntity entity : treasureEntities) {
+                    entity.setRotation(entity.getDegree()+4, entity.getPitch());
+                    entity.addDegree(4);
+                }
+            }, 1);
         }
     }
 
