@@ -35,11 +35,11 @@ public class Treasure {
 
     private List<String> commands;
 
-    private String name;
+    private String identifier;
     private Skin skin;
     
-    public Treasure(String name, String position, Skin skin, double yawSpeed, double scale, boolean isKnockback, boolean isParticleMarked, List<String> messages, List<String> commands) {
-        this.name = name;
+    public Treasure(String identifier, String position, Skin skin, double yawSpeed, double scale, boolean isKnockback, boolean isParticleMarked, List<String> messages, List<String> commands) {
+        this.identifier = identifier;
         this.position = position;
         this.skin = skin;
         this.yawSpeed = yawSpeed;
@@ -60,7 +60,7 @@ public class Treasure {
             pos.getChunk().load();
             CompoundTag tag = Entity.getDefaultNBT(pos);
             tag.putCompound("Skin", new CompoundTag().putByteArray("Data", skin.getSkinData().data).putString("ModelId", skin.getSkinId()));
-            TreasureEntity entity = new TreasureEntity(pos.getChunk(), tag, pos, name, yawSpeed);
+            TreasureEntity entity = new TreasureEntity(pos.getChunk(), tag, pos, identifier, yawSpeed);
             entity.setLevel(pos.getLevel());
             entity.setSkin(skin);
             entity.setScale((float) scale);
@@ -78,7 +78,7 @@ public class Treasure {
         if(this.entity == null){ return; }
         if (player.getLevel() == entity.getLevel() && player.distance(entity.getPosition()) < 5) {
             Position pos = new Position(entity.x, entity.y + 0.5, entity.z, entity.level);
-            if (!getPlayerCollect(player.getName()).contains(entity.getFloorX()+":"+entity.getFloorY()+":"+entity.getFloorZ()+":"+entity.getLevel().getName())) {
+            if (!getPlayerCollect(player.getName()).contains(this.getIdentifier())) {
                 ParticleEffect particleeffect = ParticleEffect.BLUE_FLAME;
                 for (int angle = 0; angle < 720; angle++) {
                     double x1 = pos.x + 1 * Math.cos(angle * 3.14 / 180);
@@ -116,7 +116,7 @@ public class Treasure {
                 ", isParticleMarked=" + isParticleMarked +
                 ", messages=" + messages +
                 ", commands=" + commands +
-                ", name='" + name + '\'' +
+                ", name='" + identifier + '\'' +
                 ", skin=" + skin +
                 '}';
     }

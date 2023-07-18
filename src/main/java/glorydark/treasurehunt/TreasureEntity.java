@@ -44,11 +44,13 @@ public class TreasureEntity extends EntityHuman {
 
     @Override
     public boolean onUpdate(int currentTick) {
-        this.setRotation(this.getYaw() + yawSpeed, this.getPitch());
-        if (this.getYaw() > 720) {
-            this.setRotation(this.getYaw() - 720, this.getPitch());
+        if(Server.getInstance().getOnlinePlayers().size() > 0){
+            this.setRotation(this.getYaw() + yawSpeed, this.getPitch());
+            if (this.getYaw() > 720) {
+                this.setRotation(this.getYaw() - 720, this.getPitch());
+            }
+            this.updateMovement();
         }
-        this.updateMovement();
         return super.onUpdate(currentTick);
     }
 

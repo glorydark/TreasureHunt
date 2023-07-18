@@ -70,8 +70,17 @@ public class MainClass extends PluginBase implements Listener {
             @Override
             public void run() {
                 for (Treasure treasure : treasureEntities.values()) {
-                    if(treasure.getEntity() != null && treasure.getEntity().isClosed()){
-                        treasure.getEntity().respawnToAll();
+                    Entity entity = treasure.getEntity();
+                    if(entity != null){
+                        if(entity.isClosed()){
+                            treasure.spawnByStringPos();
+                        }
+                        if(!entity.isAlive()){
+                            entity.setHealth(entity.getMaxHealth());
+                            entity.scheduleUpdate();
+                        }
+                    }else{
+                        treasure.spawnByStringPos();
                     }
                     for (Player player : Server.getInstance().getOnlinePlayers().values()) {
                         if(treasure.isParticleMarked()) {
@@ -255,7 +264,7 @@ public class MainClass extends PluginBase implements Listener {
         if(config.getKeys(false).contains(name)) {
             Treasure treasureTemp = null;
             for(Treasure treasure: MainClass.treasureEntities.values()){
-                if(treasure.getName().equals(name)){
+                if(treasure.getIdentifier().equals(name)){
                     Entity entity = treasure.getEntity();
                     treasureTemp = treasure;
                     entity.kill();
@@ -264,7 +273,7 @@ public class MainClass extends PluginBase implements Listener {
                 }
             }
             if(treasureTemp != null){
-                MainClass.treasureEntities.remove(treasureTemp.getName());
+                MainClass.treasureEntities.remove(treasureTemp.getIdentifier());
             }
             config.remove(name);
             config.save();
@@ -295,7 +304,7 @@ public class MainClass extends PluginBase implements Listener {
             if(strings.size() >= this.maxCollectCount){
                 if(strings.size() == this.maxCollectCount) {
                     if(treasure != null){
-                        send = translateString("found_treasure", treasure.getName(), maxCollectCount - strings.size());
+                        send = translateString("found_treasure", treasure.getIdentifier(), maxCollectCount - strings.size());
                         if(!send.equals("")){
                             player.sendMessage(send);
                         }
@@ -319,7 +328,7 @@ public class MainClass extends PluginBase implements Listener {
                     CreateFireworkApi.spawnFirework(player.getPosition(), DyeColor.YELLOW, ItemFirework.FireworkExplosion.ExplosionType.STAR_SHAPED);
                 }else{
                     if(treasure != null){
-                        send = translateString("found_treasure_beyond_counts", treasure.getName());
+                        send = translateString("found_treasure_beyond_counts", treasure.getIdentifier());
                         if(!send.equals("")){
                             player.sendMessage(send);
                         }
@@ -333,7 +342,7 @@ public class MainClass extends PluginBase implements Listener {
                 }
             }else {
                 if(treasure != null){
-                    send = translateString("found_treasure", treasure.getName(), maxCollectCount - strings.size());
+                    send = translateString("found_treasure", treasure.getIdentifier(), maxCollectCount - strings.size());
                     if(!send.equals("")){
                         player.sendMessage(send);
                     }
@@ -412,4 +421,5 @@ public class MainClass extends PluginBase implements Listener {
     public static String getTreasuresConfigPath(){
         return path+"/treasures.yml";
     }
+
 }
