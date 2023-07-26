@@ -12,20 +12,25 @@ import cn.nukkit.item.ItemFirework;
 import cn.nukkit.level.Position;
 import cn.nukkit.level.Sound;
 import cn.nukkit.math.Vector3;
-import cn.nukkit.plugin.Plugin;
 import cn.nukkit.plugin.PluginBase;
 import cn.nukkit.scheduler.NukkitRunnable;
 import cn.nukkit.utils.Config;
 import cn.nukkit.utils.DyeColor;
 import cn.nukkit.utils.TextFormat;
 import com.sun.istack.internal.NotNull;
+import glorydark.treasurehunt.command.BaseCommand;
+import glorydark.treasurehunt.entity.Treasure;
+import glorydark.treasurehunt.entity.TreasureEntity;
+import glorydark.treasurehunt.utils.CreateFireworkApi;
+import glorydark.treasurehunt.variable.TreasureVariable;
+import tip.utils.Api;
 
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-public class MainClass extends PluginBase implements Listener {
+public class TreasureHuntMain extends PluginBase implements Listener {
     public static HashMap<String, Skin> treasureSkin = new HashMap<>();
     public Integer maxCollectCount = 30;
     private List<String> rewardCommands;
@@ -34,7 +39,7 @@ public class MainClass extends PluginBase implements Listener {
 
     public static Config langConfig;
 
-    public static Plugin plugin;
+    public static TreasureHuntMain plugin;
 
     public static String path;
 
@@ -65,7 +70,6 @@ public class MainClass extends PluginBase implements Listener {
         this.getServer().getCommandMap().register("", new BaseCommand("treasurehunt"));
         this.loadSkins();
         this.spawnAllTreasures();
-
         new NukkitRunnable() {
             @Override
             public void run() {
@@ -90,6 +94,8 @@ public class MainClass extends PluginBase implements Listener {
                 }
             }
         }.runTaskTimerAsynchronously(this, 0, 40);
+
+        Api.registerVariables("TreasureHunt", TreasureVariable.class);
         this.getLogger().info(TextFormat.GREEN+"TreasureHunt enabled");
     }
 
@@ -263,7 +269,7 @@ public class MainClass extends PluginBase implements Listener {
         Config config = new Config(path + "/treasures.yml", Config.YAML);
         if(config.getKeys(false).contains(name)) {
             Treasure treasureTemp = null;
-            for(Treasure treasure: MainClass.treasureEntities.values()){
+            for(Treasure treasure: TreasureHuntMain.treasureEntities.values()){
                 if(treasure.getIdentifier().equals(name)){
                     Entity entity = treasure.getEntity();
                     treasureTemp = treasure;
@@ -273,7 +279,7 @@ public class MainClass extends PluginBase implements Listener {
                 }
             }
             if(treasureTemp != null){
-                MainClass.treasureEntities.remove(treasureTemp.getIdentifier());
+                TreasureHuntMain.treasureEntities.remove(treasureTemp.getIdentifier());
             }
             config.remove(name);
             config.save();

@@ -1,8 +1,9 @@
-package glorydark.treasurehunt;
+package glorydark.treasurehunt.command;
 
 import cn.nukkit.Player;
 import cn.nukkit.command.Command;
 import cn.nukkit.command.CommandSender;
+import glorydark.treasurehunt.TreasureHuntMain;
 
 import java.io.File;
 import java.util.Objects;
@@ -16,49 +17,49 @@ public class BaseCommand extends Command {
     public boolean execute(CommandSender commandSender, String s, String[] strings) {
         if(commandSender.isPlayer()){
             if(commandSender.isOp()){
-                if(strings.length == 0){ commandSender.sendMessage(MainClass.translateString("command_wrongUsage")); return true; }
+                if(strings.length == 0){ commandSender.sendMessage(TreasureHuntMain.translateString("command_wrongUsage")); return true; }
                 Player player = (Player) commandSender;
                 switch (strings[0]){
                     case "help":
-                        player.sendMessage(MainClass.translateString("command_help_1"));
-                        player.sendMessage(MainClass.translateString("command_help_2"));
+                        player.sendMessage(TreasureHuntMain.translateString("command_help_1"));
+                        player.sendMessage(TreasureHuntMain.translateString("command_help_2"));
                         break;
                     case "create":
                         if(strings.length < 2){ return false; }
-                        MainClass.createTreasure(player, player.getPosition(), strings[1]);
+                        TreasureHuntMain.createTreasure(player, player.getPosition(), strings[1]);
                         break;
                     case "remove":
                         if(strings.length < 2){ return false; }
-                        MainClass.deleteTreasure(player, strings[1]);
+                        TreasureHuntMain.deleteTreasure(player, strings[1]);
                         break;
                     case "clearall":
-                        File file = new File(MainClass.path+"/players");
+                        File file = new File(TreasureHuntMain.path+"/players");
                         for(File one: Objects.requireNonNull(file.listFiles())) {
                             if (one.delete()){
-                                commandSender.sendMessage(MainClass.translateString("clearall_success"));
+                                commandSender.sendMessage(TreasureHuntMain.translateString("clearall_success"));
                             }
                         }
-                        player.sendMessage(MainClass.translateString("clearall_success"));
+                        player.sendMessage(TreasureHuntMain.translateString("clearall_success"));
                         break;
                 }
             }else{
-                commandSender.sendMessage(MainClass.translateString("command_noPermission"));
+                commandSender.sendMessage(TreasureHuntMain.translateString("command_noPermission"));
             }
         }else{
             switch (strings[0]){
                 case "help":
-                    commandSender.sendMessage(MainClass.translateString("command_help_1"));
-                    commandSender.sendMessage(MainClass.translateString("command_help_2"));
+                    commandSender.sendMessage(TreasureHuntMain.translateString("command_help_1"));
+                    commandSender.sendMessage(TreasureHuntMain.translateString("command_help_2"));
                     break;
                 case "create":
                 case "remove":
-                    commandSender.sendMessage(MainClass.translateString("command_useInGame"));
+                    commandSender.sendMessage(TreasureHuntMain.translateString("command_useInGame"));
                     break;
                 case "clearall":
-                    File file = new File(MainClass.path+"/players");
+                    File file = new File(TreasureHuntMain.path+"/players");
                     for(File one: Objects.requireNonNull(file.listFiles())) {
                         if (one.delete()){
-                            commandSender.sendMessage(MainClass.translateString("clearall_success"));
+                            commandSender.sendMessage(TreasureHuntMain.translateString("clearall_success"));
                         }
                     }
                     break;

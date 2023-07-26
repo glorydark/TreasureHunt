@@ -1,4 +1,4 @@
-package glorydark.treasurehunt;
+package glorydark.treasurehunt.entity;
 
 import cn.nukkit.Server;
 import cn.nukkit.entity.EntityHuman;

@@ -1,4 +1,4 @@
-package glorydark.treasurehunt;
+package glorydark.treasurehunt.entity;
 
 import cn.nukkit.Player;
 import cn.nukkit.Server;
@@ -9,6 +9,7 @@ import cn.nukkit.level.ParticleEffect;
 import cn.nukkit.level.Position;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.utils.Config;
+import glorydark.treasurehunt.TreasureHuntMain;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -101,7 +102,7 @@ public class Treasure {
     }
 
     public List<String> getPlayerCollect(String player){
-        Config config = new Config(MainClass.path+"/players/"+player+".yml", Config.YAML);
+        Config config = new Config(TreasureHuntMain.path+"/players/"+player+".yml", Config.YAML);
         return new ArrayList<>(config.getStringList("list"));
     }
 

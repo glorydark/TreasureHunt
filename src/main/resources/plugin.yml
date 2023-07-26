@@ -1,7 +1,9 @@
 name: TreasureHunt
-main: glorydark.treasurehunt.MainClass
-version: "2.0.0"
+main: glorydark.treasurehunt.TreasureHuntMain
+version: "2.0.1"
 author: glorydark
 api: ["1.0.0"]
 description: TreasureHunt
 load: POSTWORLD
+depend:
+  - Tips

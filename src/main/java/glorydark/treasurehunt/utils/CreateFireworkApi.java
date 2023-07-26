@@ -1,4 +1,4 @@
-package glorydark.treasurehunt;
+package glorydark.treasurehunt.utils;
 
 import cn.nukkit.entity.item.EntityFirework;
 import cn.nukkit.item.ItemFirework;
