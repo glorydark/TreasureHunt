@@ -13,13 +13,13 @@ public class TreasureEntity extends EntityHuman {
     private final Position position;
     private final double yawSpeed;
 
-    private final String identifier;
+    private final Treasure treasure;
 
-    public TreasureEntity(FullChunk chunk, CompoundTag nbt, Position position, String identifier, double yawSpeed) {
+    public TreasureEntity(FullChunk chunk, CompoundTag nbt, Position position, Treasure treasure, double yawSpeed) {
         super(chunk, nbt);
         this.position = position;
         this.yawSpeed = yawSpeed;
-        this.identifier = identifier;
+        this.treasure = treasure;
     }
 
     @Deprecated //只是为了兼容PN核心
@@ -27,7 +27,7 @@ public class TreasureEntity extends EntityHuman {
         super(chunk, nbt);
         this.position = new Position(0, 0, 0, Server.getInstance().getDefaultLevel()); //防止NPE
         this.yawSpeed = 4;
-        this.identifier = "";
+        this.treasure = null;
         this.close();
     }
 
@@ -39,7 +39,11 @@ public class TreasureEntity extends EntityHuman {
     }
 
     public String getIdentifier() {
-        return identifier;
+        return this.treasure.getIdentifier();
+    }
+
+    public Treasure getTreasure() {
+        return treasure;
     }
 
     @Override

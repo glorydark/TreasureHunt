@@ -10,6 +10,7 @@ import cn.nukkit.level.Position;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.utils.Config;
 import glorydark.treasurehunt.TreasureHuntMain;
+import glorydark.treasurehunt.variable.TreasureCategoryData;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -38,9 +39,12 @@ public class Treasure {
 
     private String identifier;
     private Skin skin;
+
+    private String category;
     
-    public Treasure(String identifier, String position, Skin skin, double yawSpeed, double scale, boolean isKnockback, boolean isParticleMarked, List<String> messages, List<String> commands) {
+    public Treasure(String identifier, String category, String position, Skin skin, double yawSpeed, double scale, boolean isKnockback, boolean isParticleMarked, List<String> messages, List<String> commands) {
         this.identifier = identifier;
+        this.category = category;
         this.position = position;
         this.skin = skin;
         this.yawSpeed = yawSpeed;
@@ -51,17 +55,16 @@ public class Treasure {
         this.messages = messages;
     }
 
-    public boolean spawnByStringPos() {
-        String[] strings = position.split(":");
-        Location pos = new Location(Double.parseDouble(strings[0]), Double.parseDouble(strings[1]), Double.parseDouble(strings[2]), Server.getInstance().getLevelByName(strings[3]));
-        if(!Server.getInstance().isLevelLoaded(strings[3])) {
+    public boolean spawnByStringPos(Treasure treasure) {
+        Location pos = getLocationByString(position);
+        if(pos.getLevel() == null){
             return false;
         }
         try {
             pos.getChunk().load();
             CompoundTag tag = Entity.getDefaultNBT(pos);
             tag.putCompound("Skin", new CompoundTag().putByteArray("Data", skin.getSkinData().data).putString("ModelId", skin.getSkinId()));
-            TreasureEntity entity = new TreasureEntity(pos.getChunk(), tag, pos, identifier, yawSpeed);
+            TreasureEntity entity = new TreasureEntity(pos.getChunk(), tag, pos, treasure, yawSpeed);
             entity.setLevel(pos.getLevel());
             entity.setSkin(skin);
             entity.setScale((float) scale);
@@ -73,6 +76,24 @@ public class Treasure {
         }catch (Exception e){
             return false;
         }
+    }
+
+    public Location getLocationByString(String str){
+        String[] strings = str.split(":");
+        if(strings.length < 4){
+            return new Location();
+        }
+        Location pos = new Location(Double.parseDouble(strings[0]), Double.parseDouble(strings[1]), Double.parseDouble(strings[2]), Server.getInstance().getLevelByName(strings[3]));
+        switch (strings.length){
+            case 7:
+                pos.headYaw = Double.parseDouble(strings[6]);
+            case 6:
+                pos.pitch = Double.parseDouble(strings[5]);
+            case 5:
+                pos.yaw = Double.parseDouble(strings[4]);
+                break;
+        }
+        return pos;
     }
     
     public void showParticle(Player player){
@@ -121,4 +142,9 @@ public class Treasure {
                 ", skin=" + skin +
                 '}';
     }
+
+    public TreasureCategoryData getTreasureCategory(){
+        return TreasureHuntMain.treasureCategoryDataMap.getOrDefault(category, null);
+    }
+
 }

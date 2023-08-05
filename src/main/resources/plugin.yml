@@ -1,6 +1,6 @@
 name: TreasureHunt
 main: glorydark.treasurehunt.TreasureHuntMain
-version: "2.0.1"
+version: ${project.version}
 author: glorydark
 api: ["1.0.0"]
 description: TreasureHunt

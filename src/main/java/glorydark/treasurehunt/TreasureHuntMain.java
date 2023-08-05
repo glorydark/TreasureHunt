@@ -9,12 +9,14 @@ import cn.nukkit.event.Listener;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.item.ItemFirework;
+import cn.nukkit.level.Location;
 import cn.nukkit.level.Position;
 import cn.nukkit.level.Sound;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.plugin.PluginBase;
 import cn.nukkit.scheduler.NukkitRunnable;
 import cn.nukkit.utils.Config;
+import cn.nukkit.utils.ConfigSection;
 import cn.nukkit.utils.DyeColor;
 import cn.nukkit.utils.TextFormat;
 import com.sun.istack.internal.NotNull;
@@ -22,6 +24,7 @@ import glorydark.treasurehunt.command.BaseCommand;
 import glorydark.treasurehunt.entity.Treasure;
 import glorydark.treasurehunt.entity.TreasureEntity;
 import glorydark.treasurehunt.utils.CreateFireworkApi;
+import glorydark.treasurehunt.variable.TreasureCategoryData;
 import glorydark.treasurehunt.variable.TreasureVariable;
 import tip.utils.Api;
 
@@ -31,9 +34,10 @@ import java.io.IOException;
 import java.util.*;
 
 public class TreasureHuntMain extends PluginBase implements Listener {
+
     public static HashMap<String, Skin> treasureSkin = new HashMap<>();
-    public Integer maxCollectCount = 30;
-    private List<String> rewardCommands;
+
+    public static HashMap<String, TreasureCategoryData> treasureCategoryDataMap = new HashMap<>();
 
     public static boolean isKnockback;
 
@@ -44,7 +48,6 @@ public class TreasureHuntMain extends PluginBase implements Listener {
     public static String path;
 
     public static HashMap<String, Treasure> treasureEntities = new HashMap<>();
-    private List<String> messages;
 
     @Override
     public void onLoad() {
@@ -55,16 +58,25 @@ public class TreasureHuntMain extends PluginBase implements Listener {
     public void onEnable() {
         plugin = this;
         path = this.getDataFolder().getPath();
-        this.saveResource("config.yml", false);
-        this.saveResource("treasures.yml", false);
-        this.saveResource("skins/default/skin.png", false);
-        this.saveResource("skins/default/skin.json", false);
-        this.saveResource("lang.properties", false);
+        this.saveResource("config.yml");
+        this.saveResource("category.yml");
+        this.saveResource("treasures.yml");
+        this.saveResource("skins/default/skin.png");
+        this.saveResource("skins/default/skin.json");
+        this.saveResource("lang.properties");
         Config config = new Config(path+"/config.yml", Config.YAML);
-        this.maxCollectCount = config.getInt("maxCollectCount",30);
-        this.rewardCommands = new ArrayList<>(config.getStringList("commands"));
-        this.messages = new ArrayList<>(config.getStringList("messages"));
         isKnockback = config.getBoolean("isKnockback", true);
+        // category
+        Config categoryConfig = new Config(path+"/category.yml", Config.YAML);
+        for (String key : categoryConfig.getKeys(false)) {
+            ConfigSection configSection = categoryConfig.getSection(key);
+            TreasureCategoryData data = new TreasureCategoryData(
+                    configSection.getInt("maxCollectCount",30),
+                    new ArrayList<>(configSection.getStringList("commands")),
+                    new ArrayList<>(config.getStringList("messages"))
+            );
+            treasureCategoryDataMap.put(key, data);
+        }
         langConfig = new Config(path+"/lang.properties",Config.PROPERTIES);
         this.getServer().getPluginManager().registerEvents(this, this);
         this.getServer().getCommandMap().register("", new BaseCommand("treasurehunt"));
@@ -77,14 +89,14 @@ public class TreasureHuntMain extends PluginBase implements Listener {
                     Entity entity = treasure.getEntity();
                     if(entity != null){
                         if(entity.isClosed()){
-                            treasure.spawnByStringPos();
+                            treasure.spawnByStringPos(treasure);
                         }
                         if(!entity.isAlive()){
                             entity.setHealth(entity.getMaxHealth());
                             entity.scheduleUpdate();
                         }
                     }else{
-                        treasure.spawnByStringPos();
+                        treasure.spawnByStringPos(treasure);
                     }
                     for (Player player : Server.getInstance().getOnlinePlayers().values()) {
                         if(treasure.isParticleMarked()) {
@@ -206,8 +218,9 @@ public class TreasureHuntMain extends PluginBase implements Listener {
         if(config.getString(identifier+".position", "null").equals("null")){
             return;
         }
-        Treasure treasure = new Treasure(identifier
-                ,config.getString(identifier+".position", "null"),
+        Treasure treasure = new Treasure(identifier,
+                config.getString(identifier+".category", "default"),
+                config.getString(identifier+".position", "null"),
                 treasureSkin.getOrDefault(config.getString(identifier+".skin", "default"), new Skin()),
                 config.getBoolean(identifier+".spin",false)?config.getDouble(identifier+".spinSpeed", 4.0):0d,
                 config.getDouble(identifier+".scale", 4.0),
@@ -216,7 +229,7 @@ public class TreasureHuntMain extends PluginBase implements Listener {
                 new ArrayList<>(config.getStringList(identifier+".messages")),
                 new ArrayList<>(config.getStringList(identifier+".commands"))
         );
-        if(treasure.spawnByStringPos()) {
+        if(treasure.spawnByStringPos(treasure)) {
             treasureEntities.put(identifier, treasure);
             plugin.getLogger().info("成功加载：" + identifier);
         }else{
@@ -245,8 +258,8 @@ public class TreasureHuntMain extends PluginBase implements Listener {
         return content;
     }
 
-    public static void createTreasure(Player player, Position position, String identifier){
-        String pos = position.getFloorX()+":"+position.getFloorY()+":"+position.getFloorZ()+":"+position.getLevel().getName();
+    public static void createTreasure(Player player, Location position, String identifier){
+        String pos = position.getX()+":"+position.getY()+":"+position.getZ()+":"+position.getLevel().getName()+":"+position.getYaw()+":"+position.getPitch()+":"+position.getHeadYaw();
         if(!treasureEntities.containsKey(identifier)) {
             Config config = new Config(path + "/treasures.yml", Config.YAML);
             config.set(identifier+".position", pos);
@@ -257,6 +270,7 @@ public class TreasureHuntMain extends PluginBase implements Listener {
             config.set(identifier+".spinSpeed", 4.0);
             config.set(identifier+".isParticleMarked", false);
             config.set(identifier+".skin", "default");
+            config.set(identifier+".category", "default");
             config.save();
             spawnTreasure(identifier);
             player.sendMessage(translateString("addTreasure_success", pos));
@@ -289,66 +303,67 @@ public class TreasureHuntMain extends PluginBase implements Listener {
         }
     }
 
-    public List<String> getPlayerCollect(String player){
+    public List<String> getPlayerCollect(String player, String category){
         Config config = new Config(this.getDataFolder().getPath()+"/players/"+player+".yml", Config.YAML);
-        return new ArrayList<>(config.getStringList("list"));
+        return new ArrayList<>(config.getStringList(category));
     }
 
-    public void setPlayerCollect(String player, List<String> strings){
+    public void setPlayerCollect(String player, String category, List<String> strings){
         Config config = new Config(this.getDataFolder().getPath()+"/players/"+player+".yml", Config.YAML);
-        config.set("list", strings);
+        config.set(category, strings);
         config.save();
     }
 
-    public Boolean addPlayerCollect(Player player, String string){
-        List<String> strings = getPlayerCollect(player.getName());
-        if(!strings.contains(string)) {
-            strings.add(string);
-            setPlayerCollect(player.getName(), strings);
-            Treasure treasure = treasureEntities.getOrDefault(string, null);
+    public Boolean addPlayerCollect(Player player, String category, String identifier){
+        List<String> strings = getPlayerCollect(player.getName(), category);
+        if(!strings.contains(identifier)) {
+            Treasure treasure = treasureEntities.getOrDefault(identifier, null);
+            if(treasure == null){
+                return false;
+            }
+            strings.add(identifier);
+            setPlayerCollect(player.getName(), category, strings);
             String send;
-            if(strings.size() >= this.maxCollectCount){
-                if(strings.size() == this.maxCollectCount) {
-                    if(treasure != null){
-                        send = translateString("found_treasure", treasure.getIdentifier(), maxCollectCount - strings.size());
-                        if(!send.equals("")){
+            TreasureCategoryData data = treasure.getTreasureCategory();
+            if(data != null){
+                int maxCollectCount = data.getMaxCollectCount();
+                if(strings.size() >= maxCollectCount) {
+                    if (strings.size() == maxCollectCount) {
+                        send = translateString("found_treasure", category, treasure.getIdentifier(), maxCollectCount - strings.size());
+                        if (!send.equals("")) {
                             player.sendMessage(send);
                         }
-                        for(String cmd : treasure.getCommands()){
+                        for (String cmd : treasure.getCommands()) {
                             this.getServer().dispatchCommand(this.getServer().getConsoleSender(), cmd.replace("%player%", player.getName()));
                         }
-                        for(String msg : treasure.getMessages()){
+                        for (String msg : treasure.getMessages()) {
                             player.sendMessage(msg.replace("%player%", player.getName()));
                         }
-                    }
-                    send = translateString("found_all_treasures");
-                    if(!send.equals("")) {
-                        player.sendMessage(send);
-                    }
-                    for(String cmd : this.rewardCommands){
-                        this.getServer().dispatchCommand(this.getServer().getConsoleSender(), cmd.replace("%player%", player.getName()));
-                    }
-                    for(String msg : this.messages){
-                        player.sendMessage(msg.replace("%player%", player.getName()));
-                    }
-                    CreateFireworkApi.spawnFirework(player.getPosition(), DyeColor.YELLOW, ItemFirework.FireworkExplosion.ExplosionType.STAR_SHAPED);
-                }else{
-                    if(treasure != null){
+                        send = translateString("found_all_treasures");
+                        if (!send.equals("")) {
+                            player.sendMessage(send);
+                        }
+                        for (String cmd : data.getRewardCommands()) {
+                            this.getServer().dispatchCommand(this.getServer().getConsoleSender(), cmd.replace("%player%", player.getName()));
+                        }
+                        for (String msg : data.getMessages()) {
+                            player.sendMessage(msg.replace("%player%", player.getName()));
+                        }
+                        CreateFireworkApi.spawnFirework(player.getPosition(), DyeColor.YELLOW, ItemFirework.FireworkExplosion.ExplosionType.STAR_SHAPED);
+                    } else {
                         send = translateString("found_treasure_beyond_counts", treasure.getIdentifier());
-                        if(!send.equals("")){
+                        if (!send.equals("")) {
                             player.sendMessage(send);
                         }
-                        for(String cmd : treasure.getCommands()){
+                        for (String cmd : treasure.getCommands()) {
                             this.getServer().dispatchCommand(this.getServer().getConsoleSender(), cmd.replace("%player%", player.getName()));
                         }
-                        for(String msg : treasure.getMessages()){
+                        for (String msg : treasure.getMessages()) {
                             player.sendMessage(msg.replace("%player%", player.getName()));
                         }
                     }
-                }
-            }else {
-                if(treasure != null){
-                    send = translateString("found_treasure", treasure.getIdentifier(), maxCollectCount - strings.size());
+                } else {
+                    send = translateString("found_treasure", category, treasure.getIdentifier(), maxCollectCount - strings.size());
                     if(!send.equals("")){
                         player.sendMessage(send);
                     }
@@ -358,8 +373,19 @@ public class TreasureHuntMain extends PluginBase implements Listener {
                     for(String msg : treasure.getMessages()){
                         player.sendMessage(msg.replace("%player%", player.getName()));
                     }
+                    player.getLevel().addSound(player.getPosition() ,Sound.NOTE_FLUTE);
                 }
-                player.getLevel().addSound(player.getPosition() ,Sound.NOTE_FLUTE);
+            }else{
+                send = translateString("found_treasure_beyond_counts", treasure.getIdentifier());
+                if (!send.equals("")) {
+                    player.sendMessage(send);
+                }
+                for (String cmd : treasure.getCommands()) {
+                    this.getServer().dispatchCommand(this.getServer().getConsoleSender(), cmd.replace("%player%", player.getName()));
+                }
+                for (String msg : treasure.getMessages()) {
+                    player.sendMessage(msg.replace("%player%", player.getName()));
+                }
             }
             return true;
         }else{
@@ -373,7 +399,7 @@ public class TreasureHuntMain extends PluginBase implements Listener {
     public void EntityDamageByEntityEvent(EntityDamageByEntityEvent event){
         if(event.getDamager() instanceof Player && event.getEntity() instanceof TreasureEntity){
             TreasureEntity entity = (TreasureEntity) event.getEntity();
-            if(!addPlayerCollect((Player) event.getDamager(), entity.getIdentifier())){
+            if(!addPlayerCollect((Player) event.getDamager(), entity.getTreasure().getCategory(), entity.getIdentifier())){
                 if(isKnockback) {
                     double deltaX = event.getDamager().x - event.getEntity().x;
                     double deltaZ = event.getDamager().z - event.getEntity().z;

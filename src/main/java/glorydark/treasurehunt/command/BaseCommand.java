@@ -26,7 +26,7 @@ public class BaseCommand extends Command {
                         break;
                     case "create":
                         if(strings.length < 2){ return false; }
-                        TreasureHuntMain.createTreasure(player, player.getPosition(), strings[1]);
+                        TreasureHuntMain.createTreasure(player, player.getLocation(), strings[1]);
                         break;
                     case "remove":
                         if(strings.length < 2){ return false; }

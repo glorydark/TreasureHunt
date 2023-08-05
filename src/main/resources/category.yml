@@ -1,0 +1,5 @@
+default:
+  maxCollectCount: 1
+  commands:
+    - say 牛逼！%player%完成了不可能的事情
+  messages: []
