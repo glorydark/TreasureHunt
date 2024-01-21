@@ -1,7 +1,6 @@
 package glorydark.treasurehunt;
 
 import cn.nukkit.Player;
-import cn.nukkit.Server;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.data.Skin;
 import cn.nukkit.event.EventHandler;
@@ -18,7 +17,6 @@ import cn.nukkit.utils.Config;
 import cn.nukkit.utils.ConfigSection;
 import cn.nukkit.utils.DyeColor;
 import cn.nukkit.utils.TextFormat;
-import com.sun.istack.internal.NotNull;
 import glorydark.treasurehunt.command.BaseCommand;
 import glorydark.treasurehunt.entity.Treasure;
 import glorydark.treasurehunt.entity.TreasureEntity;
@@ -298,7 +296,7 @@ public class TreasureHuntMain extends PluginBase implements Listener {
         }
     }
 
-    public String readFile(@NotNull File file) {
+    public String readFile(File file) {
         String content = "";
         try {
             content = cn.nukkit.utils.Utils.readFile(file);
