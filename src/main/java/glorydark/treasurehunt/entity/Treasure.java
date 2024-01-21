@@ -20,9 +20,9 @@ import java.util.List;
 @Setter
 @Getter
 public class Treasure {
-    
+
     private String position;
-    
+
     private double yawSpeed;
 
     private TreasureEntity entity;
@@ -41,7 +41,7 @@ public class Treasure {
     private Skin skin;
 
     private String category;
-    
+
     public Treasure(String identifier, String category, String position, Skin skin, double yawSpeed, double scale, boolean isKnockback, boolean isParticleMarked, List<String> messages, List<String> commands) {
         this.identifier = identifier;
         this.category = category;
@@ -57,7 +57,7 @@ public class Treasure {
 
     public boolean spawnByStringPos(Treasure treasure) {
         Location pos = getLocationByString(position);
-        if(pos.getLevel() == null){
+        if (pos.getLevel() == null) {
             return false;
         }
         try {
@@ -71,20 +71,21 @@ public class Treasure {
             entity.setNameTagVisible(false);
             entity.setImmobile();
             entity.spawnToAll();
+            entity.scheduleUpdate();
             this.entity = entity;
             return true;
-        }catch (Exception e){
+        } catch (Exception e) {
             return false;
         }
     }
 
-    public Location getLocationByString(String str){
+    public Location getLocationByString(String str) {
         String[] strings = str.split(":");
-        if(strings.length < 4){
+        if (strings.length < 4) {
             return new Location();
         }
         Location pos = new Location(Double.parseDouble(strings[0]), Double.parseDouble(strings[1]), Double.parseDouble(strings[2]), Server.getInstance().getLevelByName(strings[3]));
-        switch (strings.length){
+        switch (strings.length) {
             case 7:
                 pos.headYaw = Double.parseDouble(strings[6]);
             case 6:
@@ -95,35 +96,9 @@ public class Treasure {
         }
         return pos;
     }
-    
-    public void showParticle(Player player){
-        if(this.entity == null){ return; }
-        if (player.getLevel() == entity.getLevel() && player.distance(entity.getPosition()) < 5) {
-            Position pos = new Position(entity.x, entity.y + 0.5, entity.z, entity.level);
-            if (!getPlayerCollect(player.getName()).contains(this.getIdentifier())) {
-                ParticleEffect particleeffect = ParticleEffect.BLUE_FLAME;
-                for (int angle = 0; angle < 720; angle++) {
-                    double x1 = pos.x + 1 * Math.cos(angle * 3.14 / 180);
-                    double z1 = pos.z + 1 * Math.sin(angle * 3.14 / 180);
-                    if (angle % 30 == 0) {
-                        pos.getLevel().addParticleEffect(new Position(x1, pos.y, z1), particleeffect);
-                    }
-                }
-            } else {
-                ParticleEffect particleeffect = ParticleEffect.FALLING_DUST_GRAVEL;
-                for (int angle = 0; angle < 720; angle++) {
-                    double x1 = pos.x + 1 * Math.cos(angle * 3.14 / 180);
-                    double z1 = pos.z + 1 * Math.sin(angle * 3.14 / 180);
-                    if (angle % 30 == 0) {
-                        pos.getLevel().addParticleEffect(new Position(x1, pos.y, z1), particleeffect);
-                    }
-                }
-            }
-        }
-    }
 
-    public List<String> getPlayerCollect(String player){
-        Config config = new Config(TreasureHuntMain.path+"/players/"+player+".yml", Config.YAML);
+    public List<String> getPlayerCollect(String player) {
+        Config config = new Config(TreasureHuntMain.path + "/players/" + player + ".yml", Config.YAML);
         return new ArrayList<>(config.getStringList("list"));
     }
 
@@ -143,7 +118,7 @@ public class Treasure {
                 '}';
     }
 
-    public TreasureCategoryData getTreasureCategory(){
+    public TreasureCategoryData getTreasureCategory() {
         return TreasureHuntMain.treasureCategoryDataMap.getOrDefault(category, null);
     }
 
