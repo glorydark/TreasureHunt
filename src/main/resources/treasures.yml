@@ -6,5 +6,6 @@
   spin: true
   spinSpeed: 4
   isParticleMarked: true
+  explodeParticleAfterFind: false
   skin: default
   category: default

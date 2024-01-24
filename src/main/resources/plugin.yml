@@ -7,3 +7,4 @@ description: TreasureHunt
 load: POSTWORLD
 depend:
   - Tips
+  - RsNPC

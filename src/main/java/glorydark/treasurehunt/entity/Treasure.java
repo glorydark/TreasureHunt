@@ -1,12 +1,9 @@
 package glorydark.treasurehunt.entity;
 
-import cn.nukkit.Player;
 import cn.nukkit.Server;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.data.Skin;
 import cn.nukkit.level.Location;
-import cn.nukkit.level.ParticleEffect;
-import cn.nukkit.level.Position;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.utils.Config;
 import glorydark.treasurehunt.TreasureHuntMain;
@@ -33,6 +30,8 @@ public class Treasure {
 
     private boolean isParticleMarked;
 
+    private boolean explodeParticleAfterFound;
+
     private List<String> messages;
 
     private List<String> commands;
@@ -42,7 +41,7 @@ public class Treasure {
 
     private String category;
 
-    public Treasure(String identifier, String category, String position, Skin skin, double yawSpeed, double scale, boolean isKnockback, boolean isParticleMarked, List<String> messages, List<String> commands) {
+    public Treasure(String identifier, String category, String position, Skin skin, double yawSpeed, double scale, boolean isKnockback, boolean isParticleMarked, boolean explodeParticleAfterFound, List<String> messages, List<String> commands) {
         this.identifier = identifier;
         this.category = category;
         this.position = position;
@@ -53,6 +52,7 @@ public class Treasure {
         this.isParticleMarked = isParticleMarked;
         this.commands = commands;
         this.messages = messages;
+        this.explodeParticleAfterFound = explodeParticleAfterFound;
     }
 
     public boolean spawnByStringPos(Treasure treasure) {

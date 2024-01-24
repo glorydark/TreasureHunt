@@ -10,9 +10,9 @@ import java.util.Map;
  * @author glorydark
  * @date {2023/7/26} {17:21}
  */
-public class TreasureVariable extends BaseVariable {
+public class TreasureTipsVariable extends BaseVariable {
 
-    public TreasureVariable(Player player) {
+    public TreasureTipsVariable(Player player) {
         super(player);
     }
 

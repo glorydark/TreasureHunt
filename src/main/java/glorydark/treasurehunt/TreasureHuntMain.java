@@ -10,6 +10,7 @@ import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.item.ItemFirework;
 import cn.nukkit.level.Location;
 import cn.nukkit.level.Sound;
+import cn.nukkit.level.particle.HugeExplodeParticle;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.plugin.PluginBase;
 import cn.nukkit.scheduler.NukkitRunnable;
@@ -17,12 +18,14 @@ import cn.nukkit.utils.Config;
 import cn.nukkit.utils.ConfigSection;
 import cn.nukkit.utils.DyeColor;
 import cn.nukkit.utils.TextFormat;
+import com.smallaswater.npc.variable.VariableManage;
 import glorydark.treasurehunt.command.BaseCommand;
 import glorydark.treasurehunt.entity.Treasure;
 import glorydark.treasurehunt.entity.TreasureEntity;
 import glorydark.treasurehunt.utils.CreateFireworkApi;
 import glorydark.treasurehunt.variable.TreasureCategoryData;
-import glorydark.treasurehunt.variable.TreasureVariable;
+import glorydark.treasurehunt.variable.TreasureRsNPCVariable;
+import glorydark.treasurehunt.variable.TreasureTipsVariable;
 import tip.utils.Api;
 
 import javax.imageio.ImageIO;
@@ -59,6 +62,7 @@ public class TreasureHuntMain extends PluginBase implements Listener {
                 config.getDouble(identifier + ".scale", 4.0),
                 isKnockback,
                 config.getBoolean(identifier + ".isParticleMarked", false),
+                config.getBoolean(identifier + ".explodeParticleAfterFind", false),
                 new ArrayList<>(config.getStringList(identifier + ".messages")),
                 new ArrayList<>(config.getStringList(identifier + ".commands"))
         );
@@ -179,7 +183,8 @@ public class TreasureHuntMain extends PluginBase implements Listener {
             }
         }.runTaskTimer(this, 0, 40);
 
-        Api.registerVariables("TreasureHunt", TreasureVariable.class);
+        Api.registerVariables("TreasureHunt", TreasureTipsVariable.class);
+        VariableManage.addVariableV2("TreasureHunt", TreasureRsNPCVariable.class);
         this.getLogger().info(TextFormat.GREEN + "TreasureHunt enabled");
     }
 
@@ -352,6 +357,9 @@ public class TreasureHuntMain extends PluginBase implements Listener {
                         for (String msg : data.getMessages()) {
                             player.sendMessage(msg.replace("%player%", player.getName()));
                         }
+                        if (treasure.isExplodeParticleAfterFound()) {
+                            player.getLevel().addParticle(new HugeExplodeParticle(treasure.getEntity()));
+                        }
                         CreateFireworkApi.spawnFirework(player.getPosition(), DyeColor.YELLOW, ItemFirework.FireworkExplosion.ExplosionType.STAR_SHAPED);
                     } else {
                         send = translateString("found_treasure_beyond_counts", treasure.getIdentifier());
@@ -375,6 +383,9 @@ public class TreasureHuntMain extends PluginBase implements Listener {
                     }
                     for (String msg : treasure.getMessages()) {
                         player.sendMessage(msg.replace("%player%", player.getName()));
+                    }
+                    if (treasure.isExplodeParticleAfterFound()) {
+                        player.getLevel().addParticle(new HugeExplodeParticle(treasure.getEntity()));
                     }
                     player.getLevel().addSound(player.getPosition(), Sound.NOTE_FLUTE);
                 }
