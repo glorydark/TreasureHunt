@@ -87,6 +87,7 @@ public class TreasureHuntMain extends PluginBase implements Listener {
             config.set(identifier + ".isParticleMarked", false);
             config.set(identifier + ".skin", "default");
             config.set(identifier + ".category", "default");
+            config.set(identifier + ".explodeParticleAfterFind", false);
             config.save();
             spawnTreasure(identifier);
             player.sendMessage(translateString("addTreasure_success", pos));
