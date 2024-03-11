@@ -19,8 +19,8 @@ public class TreasureTipsVariable extends BaseVariable {
     @Override
     public void strReplace() {
         for (Map.Entry<String, TreasureCategoryData> entry : TreasureHuntMain.treasureCategoryDataMap.entrySet()) {
-            this.addStrReplaceString("{treasurehunt_found_treasure_count}", String.valueOf(TreasureHuntMain.plugin.getPlayerCollect(player.getName(), entry.getKey()).size()));
-            this.addStrReplaceString("{treasurehunt_max_collect_count}", String.valueOf(entry.getValue().getMaxCollectCount()));
+            this.addStrReplaceString("{treasurehunt_found_treasure_count_" + entry.getKey() + "}", String.valueOf(TreasureHuntMain.plugin.getPlayerCollect(player.getName(), entry.getKey()).size()));
+            this.addStrReplaceString("{treasurehunt_max_collect_count_" + entry.getKey() + "}", String.valueOf(entry.getValue().getMaxCollectCount()));
         }
     }
 }

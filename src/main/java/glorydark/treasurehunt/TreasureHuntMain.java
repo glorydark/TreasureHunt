@@ -1,12 +1,14 @@
 package glorydark.treasurehunt;
 
 import cn.nukkit.Player;
+import cn.nukkit.Server;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.data.Skin;
 import cn.nukkit.event.EventHandler;
 import cn.nukkit.event.Listener;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
+import cn.nukkit.event.level.ChunkUnloadEvent;
 import cn.nukkit.item.ItemFirework;
 import cn.nukkit.level.Location;
 import cn.nukkit.level.Sound;
@@ -66,7 +68,7 @@ public class TreasureHuntMain extends PluginBase implements Listener {
                 new ArrayList<>(config.getStringList(identifier + ".messages")),
                 new ArrayList<>(config.getStringList(identifier + ".commands"))
         );
-        if (treasure.spawnByStringPos(treasure)) {
+        if (treasure.spawnByStringPos()) {
             treasureEntities.put(identifier, treasure);
             plugin.getLogger().info("成功加载：" + identifier);
         } else {
@@ -172,20 +174,25 @@ public class TreasureHuntMain extends PluginBase implements Listener {
         this.getServer().getCommandMap().register("", new BaseCommand("treasurehunt"));
         this.loadSkins();
         this.spawnAllTreasures();
+
+        Api.registerVariables("TreasureHunt", TreasureTipsVariable.class);
+        VariableManage.addVariableV2("TreasureHunt", TreasureRsNPCVariable.class);
         new NukkitRunnable() {
             @Override
             public void run() {
                 for (Treasure treasure : treasureEntities.values()) {
-                    Entity entity = treasure.getEntity();
-                    if (entity != null) {
-                        treasure.spawnByStringPos(treasure);
+                    if (treasure.getEntity() == null) {
+                        treasure.spawnByStringPos();
+                    } else if (!treasure.getEntity().isAlive()) {
+                        treasure.getEntity().close();
+                        treasure.spawnByStringPos();
+                    } else if (treasure.getEntity().isClosed()) {
+                        treasure.spawnByStringPos();
                     }
+
                 }
             }
-        }.runTaskTimer(this, 0, 40);
-
-        Api.registerVariables("TreasureHunt", TreasureTipsVariable.class);
-        VariableManage.addVariableV2("TreasureHunt", TreasureRsNPCVariable.class);
+        }.runTaskTimerAsynchronously(this, 0, 40);
         this.getLogger().info(TextFormat.GREEN + "TreasureHunt enabled");
     }
 
@@ -447,6 +454,15 @@ public class TreasureHuntMain extends PluginBase implements Listener {
     public void EntityDamageEvent(EntityDamageEvent event) {
         if (event.getEntity() instanceof TreasureEntity && !(event instanceof EntityDamageByEntityEvent)) {
             event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void ChunkUnloadEvent(ChunkUnloadEvent event) {
+        for (Entity entity : event.getChunk().getEntities().values()) {
+            if (entity instanceof TreasureEntity) {
+                event.setCancelled(true);
+            }
         }
     }
 

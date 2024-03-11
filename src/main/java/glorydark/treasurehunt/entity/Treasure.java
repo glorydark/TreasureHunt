@@ -55,7 +55,7 @@ public class Treasure {
         this.explodeParticleAfterFound = explodeParticleAfterFound;
     }
 
-    public boolean spawnByStringPos(Treasure treasure) {
+    public boolean spawnByStringPos() {
         Location pos = getLocationByString(position);
         if (pos.getLevel() == null) {
             return false;
@@ -64,7 +64,7 @@ public class Treasure {
             pos.getChunk().load();
             CompoundTag tag = Entity.getDefaultNBT(pos);
             tag.putCompound("Skin", new CompoundTag().putByteArray("Data", skin.getSkinData().data).putString("ModelId", skin.getSkinId()));
-            TreasureEntity entity = new TreasureEntity(pos.getChunk(), tag, pos, treasure, yawSpeed);
+            TreasureEntity entity = new TreasureEntity(pos.getChunk(), tag, pos, this, yawSpeed);
             entity.setLevel(pos.getLevel());
             entity.setSkin(skin);
             entity.setScale((float) scale);
