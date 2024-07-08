@@ -16,6 +16,9 @@ public class TreasureRsNPCVariable extends BaseVariableV2 {
 
     @Override
     public void onUpdate(Player player, RsNpcConfig rsNpcConfig) {
+        if (rsNpcConfig == null) {
+            return;
+        }
         for (Map.Entry<String, TreasureCategoryData> entry : TreasureHuntMain.treasureCategoryDataMap.entrySet()) {
             this.addVariable("{treasurehunt_found_treasure_count_" + entry.getKey() + "}", String.valueOf(TreasureHuntMain.plugin.getPlayerCollect(player.getName(), entry.getKey()).size()));
             this.addVariable("{treasurehunt_max_collect_count_" + entry.getKey() + "}", String.valueOf(entry.getValue().getMaxCollectCount()));
